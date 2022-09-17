@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Madurai District</title>
+
+    <!-- leaflet css  -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="./lib/leaflet-measure.css" />
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+         #map {
+             width: 100%;
+             height: 100vh;
+         }
+         
+         .coordinate {
+            color: rgb(0, 0, 0);
+            position: absolute;
+            bottom: 10px;
+            right: 50%;
+         }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+        <div class="leaflet-control coordinate"></div>
+        <button onclick=fullScreenview()>view in full screen</button>
+</body>
+</html>
+
+<!-- leaflet js  -->
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script src="./Data/Madurai_District.js"></script>
+<script src="./Data/Madurai_Road.js"></script>
+<script src="./Data/Madurai_Road_Intersect.js"></script>
+<script src="./Data/Madurai_Taluk.js"></script>
+<script src="./lib/leaflet-measure.js"></script>
+
+
+<script>
+    // Map initialization 
+    var map = L.map('map',{
+        measureControl: true,
+    }
+    ).setView([9.9252, 78.1198], 10.4);
+
+    //osm layer
+    var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    });
+    osm.addTo(map);
+
+    // water color 
+    var watercolor = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/watercolor/{z}/{x}/{y}.{ext}', {
+        attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        subdomains: 'abcd',
+        minZoom: 1,
+        maxZoom: 16,
+        ext: 'jpg'
+    });
+    // watercolor.addTo(map)
+
+    // dark map 
+    var dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 19
+    });
+    // dark.addTo(map)
+
+    // google street 
+        googleStreets = L.tileLayer('http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+        maxZoom: 20,
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
+    });
+    // googleStreets.addTo(map);
+
+    // google satellite
+        googleSat = L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+        maxZoom: 20,
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
+    });
+    // googleSat.addTo(map)
+
+
+    // Marker
+    var myIcon = L.icon({
+        iconUrl: 'img/red_marker.png',
+        iconSize: [40, 40],
+    });
+    var singleMarker = L.marker([9.9252, 78.1198], { icon: myIcon, draggable: true });
+    var popup = singleMarker.bindPopup('Madurai City.').openPopup()
+        popup.addTo(map);
+
+    console.log(singleMarker.toGeoJSON())
+
+    // GEOJSON
+    var Madurai_Road = L.geoJSON(Madurai_RoadJson, {
+        onEachFeatur: function(feature,layer) {
+            layer.bindPopup(`<b>Name: </b)` + feature.properties.name)
+        },
+        style: {
+            fillcolor:'red',
+            fillcolor: 2,
+            color: 'rgb(0, 0, 0)',
+        }
+    }).addTo(map);
+
+    const geoJsonMarkerOptions = {
+        redius: 4,
+        fillcolor: "#ff7800",
+        color: "chartreuse",
+        weight : 0.5,
+        opacity: 0.5,
+        fillOpacity: 0.4
+    };
+    
+    var Madurai_Road_Intersect = L.geoJSON(Madurai_Road_IntersectJson, {
+        onEachFeatur: function(feature,layer) {
+            const popupContent =
+                '<h4 class = "text-primary">Light</h4' +
+                '<dev class="coutainer"><table class="table table-striped' +
+                "<thead><tr><tr>Properties</th><th>Value</tr></tr></thrad>" +
+                "<tbody><tr><td> OBJECTID </td><td>" +
+                feature.properties.OBJECTID +
+                "</td></tr>" +
+                "<tr><td>FID_Madura </td><td>" +
+                feature.properties.FID_Madura +
+                "</td></tr>" +
+                "<tr><td>MED_DESCRI </td><td>" +
+                feature.properties.MED_DESCRI +
+                "</td></tr>" +
+                "<tr><td>RTT_DESCRI </td><td>" +
+                feature.properties.RTT_DESCRI +
+                "</td></tr>" +
+                "<tr><td>F_CODE_DES </td><td>" +
+                feature.properties.F_CODE_DES +
+                "</td></tr>" ;
+                layer.bindPopup(popupContent);
+                },
+        pointToLayer: function(feature,latlng) {
+            return L.circleMarker(latlng, geoJsonMarkerOptions)
+    }
+}).addTo(map);
+
+    var Madurai_Taluk = L.geoJSON(Madurai_TalukJson, {
+        onEachFeatur: function(feature,layer) {
+            layer.bindPopup(`<b>Name: </b)` + feature.properties.name)
+        },
+        style: {
+            fillcolor:'red',
+            fillcolor: 2,
+            color: 'red',
+        }
+    }).addTo(map);
+
+
+    var Madurai_District = L.geoJSON(Madurai_DistrictJson).addTo(map)
+    var MMadurai_District = L.geoJSON(Madurai_DistrictJson, {
+        onEachFeatur: function(feature,layer) {
+            layer.bindPopup(`<b>Name: </b)` + feature.properties.name)
+        },
+        style: {
+            fillcolor:'red',
+            fillcolor: 2,
+            color: '#c0c0c0',
+            outerWidth: 10,
+        }
+    }).addTo(map);
+
+
+    // Layer controller
+    var baseMaps = {
+        "OSM": osm,
+        "Water color map": watercolor,
+        'Dark': dark,
+        'Google Street': googleStreets,
+        "Google Satellite": googleSat
+    };
+
+    var overlayMaps = {
+        "Marker": singleMarker,
+        'Madurai_Road': Madurai_Road,
+        'Madurai_Road_Intersect': Madurai_Road_Intersect,
+        'Madurai_Taluk': Madurai_Taluk,
+        'Madurai_District': Madurai_District
+
+    };
+
+    map.removeLayer(singleMarker)
+    map.removeLayer(Madurai_Road)
+    map.removeLayer(Madurai_Road_Intersect)
+    map.removeLayer(Madurai_Taluk)
+    map.removeLayer(Madurai_District)
+
+    L.control.layers(baseMaps, overlayMaps, { collapsed: false}).addTo(map);
+
+    // Leaft Events
+
+    map.on('mouseover', function () {
+        console.log('your mouse is over the map')
+    })
+
+    map.on('mousemove', function (e) {
+        document.getElementsByClassName('coordinate')[0].innerHTML = 'lat: ' + e.latlng.lat + 'lng: ' + e.latlng.lng;
+        console.log('lat: ' + e.latlng.lat, 'lng: ' + e.latlng.lng)
+    })
+
+    // add map scale
+    L.control.scale().addTo(map)
+
+    // Full screen map view
+    var mapId = document.getElementById('map');
+    function fullScreenview() {
+        mapId.requestFullscreen();
+    }
+
+
+
+    // start : FeatureInfo Control
+
+var featureInfoButton = document.createElement('button');
+featureInfoButton.innerHTML = '<img src="resources/images/identify.svg" alt="" style="width:20x;height:20px;filter:brightness(0) invert(1);vertical-align:middle"></img>';
+featureInfoButton.className = 'myButton';
+featureInfoButton.id = 'featureInfoButton';
+
+var featureInfoElement = document.createElement('div');
+featureInfoElement.className = 'featureInfoDiv';
+featureInfoElement.appendChild(featureInfoButton);
+
+var featureInfoControl = new ol.control.Control({
+    element: featureInfoElement
+})
+
+var featureInfoFlag = false;
+featureInfoButton.addEventListener("click", () => {
+    featureInfoButton.classList.toggle('clicked');
+    featureInfoFlag = !featureInfoFlag;
+})
+
+map.addControl(featureInfoControl);
+
+map.on('singleclick', function (evt) {
+    if (featureInfoFlag) {
+        content.innerHTML = '';
+        var resolution = mapView.getResolution();
+
+        var url = IndiaDsTile.getSource().getFeatureInfoUrl(evt.coordinate, resolution, 'EPSG:3857', {
+            'INFO_FORMAT': 'application/json',
+            'propertyName': 'state,district'
+        });
+
+        if (url) {
+            $.getJSON(url, function (data) {
+                var feature = data.features[0];
+                var props = feature.properties;
+                content.innerHTML = "<h3> State : </h3> <p>" + props.state.toUpperCase() + "</p> <br> <h3> District : </h3> <p>" +
+                    props.district.toUpperCase() + "</p>";
+                popup.setPosition(evt.coordinate);
+            })
+        } else {
+            popup.setPosition(undefined);
+        }
+    }
+});
+
+// start : Length and Area Measurement Control
+
+var lengthButton = document.createElement('button');
+lengthButton.innerHTML = '<img src="resources/images/measure-length.png" alt="" style="width:17px;height:17px;filter:brightness(0) invert(1);vertical-align:middle"></img>';
+lengthButton.className = 'myButton';
+lengthButton.id = 'lengthButton';
+
+var lengthElement = document.createElement('div');
+lengthElement.className = 'lengthButtonDiv';
+lengthElement.appendChild(lengthButton);
+
+var lengthControl = new ol.control.Control({
+    element: lengthElement
+})
+
+var lengthFlag = false;
+lengthButton.addEventListener("click", () => {
+    // disableOtherInteraction('lengthButton');
+    lengthButton.classList.toggle('clicked');
+    lengthFlag = !lengthFlag;
+    document.getElementById("map").style.cursor = "default";
+    if (lengthFlag) {
+        map.removeInteraction(draw);
+        addInteraction('LineString');
+    } else {
+        map.removeInteraction(draw);
+        source.clear();
+        const elements = document.getElementsByClassName("ol-tooltip ol-tooltip-static");
+        while (elements.length > 0) elements[0].remove();
+    }
+
+})
+
+map.addControl(lengthControl);
+
+var areaButton = document.createElement('button');
+areaButton.innerHTML = '<img src="resources/images/measure-area.png" alt="" style="width:17px;height:17px;filter:brightness(0) invert(1);vertical-align:middle"></img>';
+areaButton.className = 'myButton';
+areaButton.id = 'areaButton';
+
+
+var areaElement = document.createElement('div');
+areaElement.className = 'areaButtonDiv';
+areaElement.appendChild(areaButton);
+
+var areaControl = new ol.control.Control({
+    element: areaElement
+})
+
+var areaFlag = false;
+areaButton.addEventListener("click", () => {
+    // disableOtherInteraction('areaButton');
+    areaButton.classList.toggle('clicked');
+    areaFlag = !areaFlag;
+    document.getElementById("map").style.cursor = "default";
+    if (areaFlag) {
+        map.removeInteraction(draw);
+        addInteraction('Polygon');
+    } else {
+        map.removeInteraction(draw);
+        source.clear();
+        const elements = document.getElementsByClassName("ol-tooltip ol-tooltip-static");
+        while (elements.length > 0) elements[0].remove();
+    }
+})
+
+map.addControl(areaControl);
+
+// start : attribute query
+
+var geojson;
+var featureOverlay;
+
+var qryButton = document.createElement('button');
+qryButton.innerHTML = '<img src="resources/images/query.svg" alt="" style="width:17px;height:17px;filter:brightness(0) invert(1);vertical-align:middle"></img>';
+qryButton.className = 'myButton';
+qryButton.id = 'qryButton';
+
+var qryElement = document.createElement('div');
+qryElement.className = 'myButtonDiv';
+qryElement.appendChild(qryButton);
+
+var qryControl = new ol.control.Control({
+    element: qryElementfullscreen
+})
+
+var qryFlag = false;
+qryButton.addEventListener("click", () => {
+    // disableOtherInteraction('lengthButton');
+    qryButton.classList.toggle('clicked');
+    qryFlag = !qryFlag;
+    document.getElementById("map").style.cursor = "default";
+    if (qryFlag) {
+        if (geojson) {
+            geojson.getSource().clear();
+            map.removeLayer(geojson);
+        }
+
+        if (featureOverlay) {
+            featureOverlay.getSource().clear();
+            map.removeLayer(featureOverlay);
+        }
+        document.getElementById("attQueryDiv").style.display = "block";
+
+        bolIdentify = false;
+
+        addMapLayerList();
+    } else {
+        document.getElementById("attQueryDiv").style.display = "none";
+        document.getElementById("attListDiv").style.display = "none";
+
+        if (geojson) {
+            geojson.getSource().clear();
+            map.removeLayer(geojson);
+        }
+
+        if (featureOverlay) {
+            featureOverlay.getSource().clear();
+            map.removeLayer(featureOverlay);
+        }
+    }
+
+})
+
+
+</script>
